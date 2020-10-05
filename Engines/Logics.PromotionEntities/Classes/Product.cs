@@ -7,9 +7,11 @@ namespace Logics.PromotionEntities.Classes
     public class Product
     {
         [DataMember]
-        public string Id { get; set; }
+        public long Id { get; set; }
+
         [DataMember]
         public string Name { get; set; }
+
         [DataMember]
         public decimal UnitPrice { get; set; }
     }

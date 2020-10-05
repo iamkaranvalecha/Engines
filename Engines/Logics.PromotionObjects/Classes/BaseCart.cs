@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Logics.PromotionObjects.Classes
 {
-    public class BaseProducts
+    public class BaseCart
     {
-        public static List<Product> Products;
+        public static Cart Cart;
 
-        public BaseProducts()
+        public BaseCart()
         {
-            Products = new List<Product>();
+            Cart = new Cart();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Logics.PromotionEntities.Classes
 {
     [Serializable]
-    public class ActivePromotions
+    public class ActivePromotion
     {
         [DataMember]
         public long SkuId { get; set; }
