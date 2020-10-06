@@ -8,37 +8,47 @@ namespace Logics.PromotionObjects.Classes
 {
     public class AddToCart : BaseCart, IAddToCart
     {
-        public void AddProductToCart(CartRequest request)
+        public void AddProductToCart(List<CartRequest> request)
         {
-            if (request != null)
+            if (request != null && request.Count > 0)
             {
-                if (!string.IsNullOrEmpty(request.ProductName) && request.Quantity > 0)
+                var isCombinedSkipped = false;
+                foreach (var cartRequest in request)
                 {
-                    var products = BaseProducts.Products;
-                    if (products.Count > 0)
+                    if (!string.IsNullOrEmpty(cartRequest.ProductName) && cartRequest.Quantity > 0)
                     {
-                        var activePromotions = BasePromotions.ActivePromotions;
-                        if (activePromotions.Count > 0)
+                        var products = BaseProducts.Products;
+                        if (products.Count > 0)
                         {
-                            foreach (var product in products.Where(x => !x.IsCombinedProduct))
+                            var activePromotions = BasePromotions.ActivePromotions;
+                            if (activePromotions.Count > 0)
                             {
-                                if (request.ProductName.Equals(product.Name, StringComparison.InvariantCulture))
+                                var individualProduct = products.FirstOrDefault(x => x.Name == cartRequest.ProductName
+                                    &&
+                                    !x.IsCombinedProduct);
+
+                                if (cartRequest.ProductName.Equals(individualProduct?.Name, StringComparison.InvariantCulture))
                                 {
                                     var productPromotion =
-                                        activePromotions.Where(x => x.SkuId.Equals(product.Id)).ToList();
+                                        activePromotions.Where(x => x.SkuId.Equals(individualProduct?.Id)).ToList();
 
-                                    MapAndAddQuantityAndPriceAsPerIndividualPromotion(productPromotion, request, product);
+                                    MapAndAddQuantityAndPriceAsPerIndividualPromotion(productPromotion, cartRequest,
+                                        individualProduct);
                                 }
-                            }
 
-                            foreach (var product in products.Where(x => x.IsCombinedProduct))
-                            {
-                                if (request.ProductName.Equals(product.Name, StringComparison.InvariantCulture))
+                                var combinedProduct = products.FirstOrDefault(x => x.Name == cartRequest.ProductName
+                                    &&
+                                    x.IsCombinedProduct);
+
+                                if (cartRequest.ProductName.Equals(combinedProduct?.Name, StringComparison.InvariantCulture))
                                 {
                                     var productPromotion =
-                                        activePromotions.Where(x => x.SkuId.Equals(product.Id)).ToList();
+                                        activePromotions.Where(x => x.SkuId.Equals(combinedProduct?.Id)).ToList();
 
-                                    MapAndAddQuantityAndPriceAsPerIndividualPromotion(productPromotion, request, product, true);
+                                    MapAndAddQuantityAndPriceAsPerIndividualPromotion(productPromotion, cartRequest,
+                                        combinedProduct, true, isCombinedSkipped);
+
+                                    isCombinedSkipped = true;
                                 }
                             }
                         }
@@ -47,7 +57,8 @@ namespace Logics.PromotionObjects.Classes
             }
         }
 
-        private void MapAndAddQuantityAndPriceAsPerIndividualPromotion(List<ActivePromotion> activePromotions, CartRequest cartRequest, Product product, bool isCombined = false)
+        private void MapAndAddQuantityAndPriceAsPerIndividualPromotion(List<ActivePromotion> activePromotions,
+            CartRequest cartRequest, Product product, bool isCombined = false, bool isCombinedSkipped = false)
         {
             if (activePromotions.Count > 0 && cartRequest != null)
             {
@@ -57,34 +68,35 @@ namespace Logics.PromotionObjects.Classes
                     var promotionQuantity = activePromotion.Quantity;
                     var cartQuantity = cartRequest.Quantity;
                     var remainingQuantity = cartQuantity;
-                    if (cartQuantity > promotionQuantity)
+                    if (isCombined && isCombinedSkipped)
                     {
-                        if (isCombined)
-                        {
-                            Cart.TotalValue += activePromotion.FinalPrice;
-                            continue;
-                        }
-
-                        for (decimal i = 0; i < remainingQuantity;)
-                        {
-                            if (remainingQuantity > promotionQuantity)
-                            {
-                                //Add Promotion Price
-                                Cart.TotalValue += activePromotion.FinalPrice;
-                                remainingQuantity = cartQuantity - promotionQuantity;
-                                i += promotionQuantity;
-                            }
-                            else
-                            {
-                                //Add Unit Price
-                                Cart.TotalValue += product.UnitPrice;
-                                i++;
-                            }
-                        }
+                        //Add Promotion Price
+                        Cart.TotalValue += activePromotion.FinalPrice;
                     }
                     else
                     {
-                        Cart.TotalValue += product.UnitPrice;
+                        if (cartQuantity >= promotionQuantity)
+                        {
+                            for (decimal i = 0; i < remainingQuantity;)
+                            {
+                                if (remainingQuantity >= promotionQuantity)
+                                {
+                                    //Add Promotion Price
+                                    Cart.TotalValue += activePromotion.FinalPrice;
+                                    remainingQuantity -= promotionQuantity;
+                                }
+                                else
+                                {
+                                    //Add Unit Price
+                                    Cart.TotalValue += product.UnitPrice;
+                                    remainingQuantity -= 1;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Cart.TotalValue += product.UnitPrice;
+                        }
                     }
                 }
             }

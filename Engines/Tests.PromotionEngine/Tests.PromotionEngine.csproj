@@ -14,9 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Mocks\" />
-    <Folder Include="Classes\" />
-    <Folder Include="Shared\" />
+    <ProjectReference Include="..\Logics.PromotionObjects\Logics.PromotionObjects.csproj" />
   </ItemGroup>
 
 </Project>
