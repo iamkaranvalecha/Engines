@@ -12,6 +12,12 @@ namespace Logics.PromotionEntities.Classes
 
         [DataMember]
         public string ProductName { get; set; }
+
+        [DataMember]
+        public bool IsCombinedProduct { get; set; }
+
+        [DataMember]
+        public bool ToBeConsidered { get; set; }
     }
 
     [Serializable]

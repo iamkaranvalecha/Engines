@@ -25,7 +25,7 @@ namespace Logics.PromotionObjects.Classes
                             {
                                 var individualProduct = products.FirstOrDefault(x => x.Name == cartRequest.ProductName
                                     &&
-                                    !x.IsCombinedProduct);
+                                    !cartRequest.IsCombinedProduct);
 
                                 if (cartRequest.ProductName.Equals(individualProduct?.Name, StringComparison.InvariantCulture))
                                 {
@@ -38,7 +38,7 @@ namespace Logics.PromotionObjects.Classes
 
                                 var combinedProduct = products.FirstOrDefault(x => x.Name == cartRequest.ProductName
                                     &&
-                                    x.IsCombinedProduct);
+                                    cartRequest.IsCombinedProduct);
 
                                 if (cartRequest.ProductName.Equals(combinedProduct?.Name, StringComparison.InvariantCulture))
                                 {
@@ -68,35 +68,32 @@ namespace Logics.PromotionObjects.Classes
                     var promotionQuantity = activePromotion.Quantity;
                     var cartQuantity = cartRequest.Quantity;
                     var remainingQuantity = cartQuantity;
-                    if (isCombined && isCombinedSkipped)
+                    if (cartRequest.ToBeConsidered && cartRequest.IsCombinedProduct)
                     {
                         //Add Promotion Price
                         Cart.TotalValue += activePromotion.FinalPrice;
                     }
-                    else
+                    else if (!cartRequest.IsCombinedProduct && cartQuantity >= promotionQuantity)
                     {
-                        if (cartQuantity >= promotionQuantity)
+                        for (decimal i = 0; i < remainingQuantity;)
                         {
-                            for (decimal i = 0; i < remainingQuantity;)
+                            if (remainingQuantity >= promotionQuantity)
                             {
-                                if (remainingQuantity >= promotionQuantity)
-                                {
-                                    //Add Promotion Price
-                                    Cart.TotalValue += activePromotion.FinalPrice;
-                                    remainingQuantity -= promotionQuantity;
-                                }
-                                else
-                                {
-                                    //Add Unit Price
-                                    Cart.TotalValue += product.UnitPrice;
-                                    remainingQuantity -= 1;
-                                }
+                                //Add Promotion Price
+                                Cart.TotalValue += activePromotion.FinalPrice;
+                                remainingQuantity -= promotionQuantity;
+                            }
+                            else
+                            {
+                                //Add Unit Price
+                                Cart.TotalValue += product.UnitPrice;
+                                remainingQuantity -= 1;
                             }
                         }
-                        else
-                        {
-                            Cart.TotalValue += product.UnitPrice;
-                        }
+                    }
+                    else if (!cartRequest.ToBeConsidered && !cartRequest.IsCombinedProduct)
+                    {
+                        Cart.TotalValue += product.UnitPrice;
                     }
                 }
             }

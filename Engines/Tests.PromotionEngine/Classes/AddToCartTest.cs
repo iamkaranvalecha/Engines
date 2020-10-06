@@ -72,12 +72,15 @@ namespace Tests.PromotionEngine.Classes
                 },
                 new CartRequest {
                     ProductName = "C",
-                    Quantity = 1
+                    Quantity = 1,
+                    IsCombinedProduct = true,
                 },
                 new CartRequest
                 {
                     ProductName = "D",
-                    Quantity = 1
+                    Quantity = 1,
+                    IsCombinedProduct = true,
+                    ToBeConsidered = true
                 }
             };
 

@@ -18,8 +18,8 @@ namespace Tests.PromotionEngine.Shared
             {
                 new Product {Id = 1, Name = "A", UnitPrice = 50},
                 new Product {Id = 2, Name = "B", UnitPrice = 30},
-                new Product {Id = 3, Name = "C", UnitPrice = 20, IsCombinedProduct = true},
-                new Product {Id = 4, Name = "D", UnitPrice = 15, IsCombinedProduct = true}
+                new Product {Id = 3, Name = "C", UnitPrice = 20},
+                new Product {Id = 4, Name = "D", UnitPrice = 15}
             };
         }
 
