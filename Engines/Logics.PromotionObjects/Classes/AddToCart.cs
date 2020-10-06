@@ -8,9 +8,8 @@ namespace Logics.PromotionObjects.Classes
 {
     public class AddToCart : BaseCart, IAddToCart
     {
-        public bool AddProductToCart(CartRequest request)
+        public void AddProductToCart(CartRequest request)
         {
-            var response = false;
             if (request != null)
             {
                 if (!string.IsNullOrEmpty(request.ProductName) && request.Quantity > 0)
@@ -21,39 +20,71 @@ namespace Logics.PromotionObjects.Classes
                         var activePromotions = BasePromotions.ActivePromotions;
                         if (activePromotions.Count > 0)
                         {
-                            foreach (var product in products)
+                            foreach (var product in products.Where(x => !x.IsCombinedProduct))
                             {
                                 if (request.ProductName.Equals(product.Name, StringComparison.InvariantCulture))
                                 {
                                     var productPromotion =
                                         activePromotions.Where(x => x.SkuId.Equals(product.Id)).ToList();
 
-                                    MapAndAddQuantityAndPriceAsPerPromotion(productPromotion, request);
+                                    MapAndAddQuantityAndPriceAsPerIndividualPromotion(productPromotion, request, product);
+                                }
+                            }
+
+                            foreach (var product in products.Where(x => x.IsCombinedProduct))
+                            {
+                                if (request.ProductName.Equals(product.Name, StringComparison.InvariantCulture))
+                                {
+                                    var productPromotion =
+                                        activePromotions.Where(x => x.SkuId.Equals(product.Id)).ToList();
+
+                                    MapAndAddQuantityAndPriceAsPerIndividualPromotion(productPromotion, request, product, true);
                                 }
                             }
                         }
                     }
                 }
             }
-
-            return response;
         }
 
-        private void MapAndAddQuantityAndPriceAsPerPromotion(List<ActivePromotion> activePromotions, CartRequest cartRequest)
+        private void MapAndAddQuantityAndPriceAsPerIndividualPromotion(List<ActivePromotion> activePromotions, CartRequest cartRequest, Product product, bool isCombined = false)
         {
             if (activePromotions.Count > 0 && cartRequest != null)
             {
                 foreach (var activePromotion in activePromotions)
                 {
+                    Cart.Products.Add(product.Id);
                     var promotionQuantity = activePromotion.Quantity;
-                    if (cartRequest.Quantity > promotionQuantity)
+                    var cartQuantity = cartRequest.Quantity;
+                    var remainingQuantity = cartQuantity;
+                    if (cartQuantity > promotionQuantity)
                     {
+                        if (isCombined)
+                        {
+                            Cart.TotalValue += activePromotion.FinalPrice;
+                            continue;
+                        }
 
+                        for (decimal i = 0; i < remainingQuantity;)
+                        {
+                            if (remainingQuantity > promotionQuantity)
+                            {
+                                //Add Promotion Price
+                                Cart.TotalValue += activePromotion.FinalPrice;
+                                remainingQuantity = cartQuantity - promotionQuantity;
+                                i += promotionQuantity;
+                            }
+                            else
+                            {
+                                //Add Unit Price
+                                Cart.TotalValue += product.UnitPrice;
+                                i++;
+                            }
+                        }
                     }
                     else
                     {
-                        Cart.Products.Add(activePromotion.SkuId);
-                        Cart.TotalValue += activePromotion.FinalPrice;
+                        Cart.TotalValue += product.UnitPrice;
                     }
                 }
             }

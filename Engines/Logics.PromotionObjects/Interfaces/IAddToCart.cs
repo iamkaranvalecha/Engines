@@ -4,6 +4,6 @@ namespace Logics.PromotionObjects.Interfaces
 {
     public interface IAddToCart
     {
-        bool AddProductToCart(CartRequest request);
+        void AddProductToCart(CartRequest request);
     }
 }

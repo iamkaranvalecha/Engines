@@ -14,5 +14,8 @@ namespace Logics.PromotionEntities.Classes
 
         [DataMember]
         public decimal UnitPrice { get; set; }
+
+        [DataMember]
+        public bool IsCombinedProduct { get; set; }
     }
 }
